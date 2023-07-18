@@ -1,0 +1,3 @@
+[build]
+  command = "npm install && npm run build" # Replace with your build script if needed
+  publish = "public" # The directory where your built files are stored
