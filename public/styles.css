@@ -1,0 +1,19 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+input, textarea, button {
+    display: block;
+    margin: 10px auto;
+}
+
+#output {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
