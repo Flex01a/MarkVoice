@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Copy App</title>
-    <link rel="stylesheet" href="styles.css">
+  <title>Voice Cloning App</title>
 </head>
 <body>
-    <h1>Voice Copy App</h1>
-    <input type="file" id="audioInput" accept="audio/*">
-    <textarea id="textInput" rows="4" placeholder="Enter text to generate voice output"></textarea>
-    <button id="submitBtn">Generate Voice</button>
-    <div id="output"></div>
-
-    <script src="script.js"></script>
+  <h1>Voice Cloning App</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label for="audio">Upload an audio file:</label>
+    <input type="file" name="audio" id="audio" accept=".wav, .mp3">
+    <br>
+    <label for="text">Enter your text:</label>
+    <input type="text" name="text" id="text">
+    <br>
+    <input type="submit" value="Submit">
+  </form>
+  <audio id="audioPlayer" controls></audio>
 </body>
 </html>
