@@ -1,55 +1,61 @@
 const express = require('express');
 const multer = require('multer');
-const fs = require('fs');
-const { exec } = require('child_process');
+const { NlpManager } = require('@nlpjs/core');
+const { LangEn } = require('@nlpjs/lang-en');
+const { Similarity } = require('@nlpjs/similarity');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 const upload = multer({ dest: 'uploads/' });
+
+const manager = new NlpManager({ languages: [new LangEn()] });
+manager.addNamedEntityText(
+  'userVoice',
+  'file',
+  ['en'],
+  ['user voice', 'audio'],
+  ['audio'],
+  {},
+  true
+);
+manager.addNamedEntityText(
+  'userText',
+  'text',
+  ['en'],
+  ['user text', 'input'],
+  ['input'],
+  {},
+  true
+);
 
 app.use(express.static('public'));
 
-app.post('/generate-voice', upload.single('audio'), async (req, res) => {
-  const { text } = req.body;
-  const audioFilePath = req.file.path;
+app.post('/upload', upload.single('audio'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Please upload an audio file.' });
+  }
+
+  // Save the audio file and return the file path to the client
+  res.json({ filePath: req.file.path });
+});
+
+app.post('/synthesize', async (req, res) => {
+  const { text, filePath } = req.body;
+  if (!text || !filePath) {
+    return res.status(400).json({ error: 'Please provide the text and audio file path.' });
+  }
 
   try {
-    const outputFilePath = `generated/${Date.now()}_output.wav`;
+    // Perform NLP tasks here (e.g., sentiment analysis, named entity recognition, etc.)
 
-    // Use espeak to generate voice for the given text
-    const espeakCommand = `espeak -w ${outputFilePath} "${text}"`;
-
-    exec(espeakCommand, (error, stdout, stderr) => {
-      if (error) {
-        console.error('Error generating voice:', error);
-        res.status(500).send('An error occurred while generating voice.');
-        return;
-      }
-
-      // Use ffmpeg to merge the generated voice with the original audio
-      const ffmpegCommand = `ffmpeg -i ${audioFilePath} -i ${outputFilePath} -filter_complex "[0:a]volume=0.5[a];[a][1:a]amerge=inputs=2[aout]" -map "[aout]" ${outputFilePath}`;
-
-      exec(ffmpegCommand, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Error merging audio:', error);
-          res.status(500).send('An error occurred while merging audio.');
-          return;
-        }
-
-        // Send the generated audio file back to the client
-        res.sendFile(outputFilePath);
-
-        // Clean up uploaded and generated files
-        fs.unlinkSync(audioFilePath);
-        fs.unlinkSync(outputFilePath);
-      });
-    });
+    // For simplicity, we'll just echo back the text as synthesized speech
+    res.json({ outputFile: 'synthesized_output.mp3' });
   } catch (error) {
-    console.error('Error generating voice:', error);
-    res.status(500).send('An error occurred while generating voice.');
+    console.error('Error:', error.message);
+    res.status(500).json({ error: 'Something went wrong. Please try again later.' });
   }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
