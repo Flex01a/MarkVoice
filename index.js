@@ -15,23 +15,23 @@ app.post('/generate-voice', upload.single('audio'), async (req, res) => {
   try {
     const outputFilePath = `generated/${Date.now()}_output.wav`;
 
-    // Use ffmpeg to lower the volume of the original audio
-    const ffmpegCommand = `ffmpeg -i ${audioFilePath} -filter:a "volume=0.5" ${outputFilePath}`;
+    // Use espeak to generate voice for the given text
+    const espeakCommand = `espeak -w ${outputFilePath} "${text}"`;
 
-    exec(ffmpegCommand, (error, stdout, stderr) => {
+    exec(espeakCommand, (error, stdout, stderr) => {
       if (error) {
-        console.error('Error copying voice:', error);
-        res.status(500).send('An error occurred while copying voice.');
+        console.error('Error generating voice:', error);
+        res.status(500).send('An error occurred while generating voice.');
         return;
       }
 
-      // Use ffmpeg to add text-to-speech voice to the audio
-      const textToSpeechCommand = `ffmpeg -i ${outputFilePath} -vf "drawtext=text='${text}':fontsize=24:fontcolor=white:x=10:y=10" ${outputFilePath}`;
+      // Use ffmpeg to merge the generated voice with the original audio
+      const ffmpegCommand = `ffmpeg -i ${audioFilePath} -i ${outputFilePath} -filter_complex "[0:a]volume=0.5[a];[a][1:a]amerge=inputs=2[aout]" -map "[aout]" ${outputFilePath}`;
 
-      exec(textToSpeechCommand, (error, stdout, stderr) => {
+      exec(ffmpegCommand, (error, stdout, stderr) => {
         if (error) {
-          console.error('Error generating voice:', error);
-          res.status(500).send('An error occurred while generating voice.');
+          console.error('Error merging audio:', error);
+          res.status(500).send('An error occurred while merging audio.');
           return;
         }
 
